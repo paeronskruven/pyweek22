@@ -23,15 +23,16 @@ class AStar:
             self.g = 0
             self.f = 0
 
-    def __init__(self, graph):
+    def __init__(self, graph, size):
         logging.debug('Initializing AStar')
         self._open = set()
         self._closed = set()
+        self._size = size
 
         logging.debug('Creating nodes')
-        for y in range(0, len(graph)):
+        for y in range(0, self._size):
             self._nodes.append([])
-            for x in range(0, len(graph[y])):
+            for x in range(0, self._size):
                 self._nodes[y].append(AStar.Node(x, y, graph[y][x]))
 
     def _reset(self):
@@ -69,8 +70,7 @@ class AStar:
 
                 nx = node.x + x
                 ny = node.y + y
-
-                if nx == -1 or nx == len(self._nodes) or ny == -1 or ny == len(self._nodes):
+                if nx == -1 or nx == self._size or ny == -1 or ny == self._size:
                     continue
 
                 n = self._find_node(nx, ny)
@@ -78,9 +78,11 @@ class AStar:
                     yield n
 
     def _construct_path(self, node):
+        path = []
         while node.parent:
-            yield (node.x, node.y)
+            path.append((node.x, node.y))
             node = node.parent
+        return path
 
     def find_path(self, sx, sy, ex, ey):
         logging.debug('Finding path between {0},{1} and {2},{3}'.format(sx, sy, ex, ey))
