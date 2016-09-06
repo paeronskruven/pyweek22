@@ -1,16 +1,23 @@
 import pyglet
 import logging
 
-from .scenes import SceneManager, GameScene
-
 logging.basicConfig(format='%(asctime)s %(module)s %(levelname)s %(message)s', level=logging.DEBUG)
 
-window = pyglet.window.Window(width=1024, height=768, caption='The Nightmare')
-scene_manager = SceneManager(window)
+# setup resource paths before importing any game code
+pyglet.resource.path = ['data', 'data/tiles']
+pyglet.resource.reindex()
 
-scene_manager.push(GameScene())
+from .scenes import SceneManager, GameScene
+
+window = pyglet.window.Window(width=1024, height=768, caption='The Nightmare')
+
+scene_manager = SceneManager(window)
+scene_manager.push(GameScene(scene_manager))
 
 clock_display = pyglet.clock.ClockDisplay()
+
+pyglet.gl.glEnable(pyglet.gl.GL_BLEND)
+pyglet.gl.glBlendFunc(pyglet.gl.GL_SRC_ALPHA, pyglet.gl.GL_ONE_MINUS_SRC_ALPHA)
 
 
 @window.event

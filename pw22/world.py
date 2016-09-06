@@ -10,10 +10,12 @@ ROOM_MAX_SIZE = 16
 ROOM_MIN_SIZE = 8
 ROOM_MAX_ATTEMPTS = 30
 
-TILE_SIZE = 8
+TILE_SIZE = 64
 TILE_FLOOR = 10
 TILE_WALL = 50
 
+TEXTURE_FLOOR = pyglet.resource.texture('rock_floor.png')
+TEXTURE_WALL = pyglet.resource.texture('wall.gif')
 
 
 class Room:
@@ -31,10 +33,6 @@ class World:
     _sprites = []
     _batch = pyglet.graphics.Batch()
 
-    # todo: remove, tmp
-    _floor = pyglet.image.SolidColorImagePattern(color=(60, 60, 60, 255)).create_image(TILE_SIZE, TILE_SIZE)
-    _wall = pyglet.image.SolidColorImagePattern(color=(120, 120, 120, 255)).create_image(TILE_SIZE, TILE_SIZE)
-
     def __init__(self):
         pass
 
@@ -49,7 +47,7 @@ class World:
         self._create_sprites()
 
     def _create_rooms(self):
-        no_of_rooms = WORLD_SIZE / 4.5  # todo: calculate this with some algorithm
+        no_of_rooms = WORLD_SIZE / 4.5
         logging.debug('Creating {0} rooms'.format(no_of_rooms))
         for i in range(0, int(no_of_rooms)):
             logging.debug('Room #{0}'.format(i))
@@ -154,9 +152,9 @@ class World:
 
     def _get_tile_texture(self, tile):
         if tile == TILE_FLOOR:
-            return self._floor
+            return TEXTURE_FLOOR
         if tile == TILE_WALL:
-            return self._wall
+            return TEXTURE_WALL
 
     def _rooms_intersect(self, a, b):
         return (
