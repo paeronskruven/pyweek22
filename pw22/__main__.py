@@ -29,6 +29,7 @@ def on_draw():
     except IndexError:
         pyglet.app.exit()
 
+    pyglet.gl.glLoadIdentity()
     clock_display.draw()
 
 
@@ -40,5 +41,5 @@ def on_update(dt):
 
 
 def main():
-    pyglet.clock.schedule_interval(on_update, 1 / 60)
+    pyglet.clock.schedule(on_update)
     pyglet.app.run()

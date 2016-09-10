@@ -31,13 +31,31 @@ class World:
     _rooms = []
     _tiles = []
     _sprites = []
-    _batch = pyglet.graphics.Batch()
+    _batch = None
+    _spawn_x = None
+    _spawn_y = None
 
-    def __init__(self):
-        pass
+    def get_tiles(self):
+        return self._tiles
+
+    def get_spawn_x(self):
+        return self._spawn_x
+
+    def get_spawn_y(self):
+        return self._spawn_y
+
+    def _reset(self):
+        self._astar = None
+        self._rooms = []
+        self._tiles = []
+        self._sprites = []
+        self._batch = pyglet.graphics.Batch()
+        self._spawn_x = None
+        self._spawn_y = None
 
     def generate(self):
         logging.debug('Generating world')
+        self._reset()
         # initialize the 2d array according to the world size
         for y in range(0, WORLD_SIZE):
             self._tiles.append([0] * WORLD_SIZE)
@@ -90,13 +108,17 @@ class World:
                     x = room.x
                     while x <= room.x + room.width:
                         if x == room.x or x == room.x + room.width or y == room.y or y == room.y + room.height:
-                            self._tiles[x][y] = TILE_WALL
+                            self._tiles[y][x] = TILE_WALL
                         else:
-                            self._tiles[x][y] = TILE_FLOOR
+                            self._tiles[y][x] = TILE_FLOOR
                         x += 1
                     y += 1
 
                 self._rooms.append(room)
+                # set the players spawn to the first room generated
+                if not self._spawn_x and not self._spawn_y:
+                    self._spawn_x = int((room.x * TILE_SIZE) + ((room.width / 2) * TILE_SIZE))
+                    self._spawn_y = int((room.y * TILE_SIZE) + ((room.height / 2) * TILE_SIZE))
                 break
 
     def _create_tunnels(self):

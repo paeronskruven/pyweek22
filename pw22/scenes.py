@@ -2,7 +2,7 @@ import pyglet
 import logging
 
 from .world import World
-from .physics import PhysicsWorld
+from .physics import PhysicsSimulation
 from .actors import Player
 
 
@@ -84,7 +84,7 @@ class GameScene(Scene):
 
     _actors = []
     _world = None
-    _physics_world = None
+    _physics_simulation = None
     _player = None
     _camera = None
 
@@ -93,79 +93,58 @@ class GameScene(Scene):
         self._world = World()
         self._world.generate()
 
-        self._physics_world = PhysicsWorld()
-
         self._player = Player()
-        self._physics_world.register_shape(self._player.physics_shape)
-
-        self._camera = self.Camera(self._scene_manager.window)
-        self._camera.attach(self._player)
-
+        self._player.x = self._world.get_spawn_x()
+        self._player.y = self._world.get_spawn_y()
         self._actors.append(self._player)
 
-    def on_draw(self):
-        self._world.on_draw()
+        self._physics_simulation = PhysicsSimulation()
+        self._physics_simulation.register_world(self._world)
+        self._physics_simulation.register_shape(self._player.get_shape())
 
+    def on_draw(self):
+        # center view on players position
+        pyglet.gl.glLoadIdentity()
+        pyglet.gl.glTranslatef(
+            -int(self._player.x - self._scene_manager.window.width / 2),
+            -int(self._player.y - self._scene_manager.window.height / 2),
+            -1
+        )
+
+        self._world.on_draw()
         for actor in self._actors:
             actor.on_draw()
 
-        self._physics_world.on_draw()
+        self._physics_simulation.on_draw()  # only to debug physics shapes
 
     def on_update(self, dt):
         for actor in self._actors:
             actor.on_update(dt)
-        self._camera.apply()
 
-        self._physics_world.on_update(dt)
+        self._physics_simulation.on_update()
 
     def on_key_press(self, symbol, modifiers):
         if symbol == pyglet.window.key.A:
-            self._player.left_move = -1
+            self._player.should_move_left = -1
         elif symbol == pyglet.window.key.D:
-            self._player.right_move = 1
+            self._player.should_move_right = 1
         elif symbol == pyglet.window.key.W:
-            self._player.up_move = 1
+            self._player.should_move_up = 1
         elif symbol == pyglet.window.key.S:
-            self._player.down_move = -1
+            self._player.should_move_down = -1
 
     def on_key_release(self, symbol, modifiers):
         if symbol == pyglet.window.key.A:
-            self._player.left_move = 0
+            self._player.should_move_left = 0
         elif symbol == pyglet.window.key.D:
-            self._player.right_move = 0
+            self._player.should_move_right = 0
         elif symbol == pyglet.window.key.W:
-            self._player.up_move = 0
+            self._player.should_move_up = 0
         elif symbol == pyglet.window.key.S:
-            self._player.down_move = 0
+            self._player.should_move_down = 0
 
     def on_mouse_motion(self, x, y, dx, dy):
         self._player.look_at(x, y)
 
     def on_mouse_release(self, x, y, button, modifiers):
         pass
-
-    class Camera:
-
-        x = 0
-        y = 0
-        z = 0
-
-        _attached_to = None
-
-        def __init__(self, window):
-            self._window = window
-
-        def attach(self, obj):
-            self._attached_to = obj
-
-        def apply(self):
-            pyglet.gl.glMatrixMode(pyglet.gl.GL_MODELVIEW)
-            pyglet.gl.glLoadIdentity()
-            if self._attached_to:
-                pyglet.gl.glTranslatef(
-                    -(self._attached_to.x - self._window.width / 2),
-                    -(self._attached_to.y - self._window.height / 2),
-                    -self.z
-                )
-                return
-            pyglet.gl.glTranslatef(-self.x, -self.y, -self.z)
